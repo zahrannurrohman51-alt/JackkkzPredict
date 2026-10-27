@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JACKKKZPRED - Premium Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== MODERN MINIMALIST RESET ===== */
+:root {
+  --bg-base: #0f172a;
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --bg-input: rgba(15, 23, 42, 0.6);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-primary: #38bdf8;
+  --accent-kecil: #06b6d4;
+  --accent-besar: #f97316;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { 
+  margin:0; padding:0; box-sizing:border-box; 
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body { 
+  background: var(--bg-base); 
+  background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+  color: var(--text-main); 
+  min-height: 100vh; 
+  overflow-x: hidden; 
+}
+
+/* ===== COOL LOADING SCREEN ===== */
+#loading { 
+  position: fixed; inset: 0; 
+  background: var(--bg-base); 
+  display: flex; flex-direction: column; justify-content: center; align-items: center; 
+  z-index: 10000; 
+  transition: opacity 0.6s ease-out, visibility 0.6s;
+}
+.loader-logo {
+  font-size: 32px; font-weight: 800; letter-spacing: 2px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
+  animation: pulse-glow 2s infinite alternate;
+}
+@keyframes pulse-glow {
+  0% { opacity: 0.8; filter: drop-shadow(0 0 10px rgba(56,189,248,0.2)); }
+  100% { opacity: 1; filter: drop-shadow(0 0 25px rgba(56,189,248,0.8)); }
+}
+.loading-bar-container { 
+  width: 250px; height: 4px; 
+  background: rgba(255,255,255,0.1); 
+  border-radius: 10px; overflow: hidden;
+  position: relative;
+}
+.loading-bar { 
+  height: 100%; width: 0%; 
+  background: linear-gradient(90deg, #38bdf8, #818cf8); 
+  border-radius: 10px;
+  transition: width 0.2s ease-out; 
+  box-shadow: 0 0 10px #38bdf8;
+}
+
+/* ===== PASSWORD SCREEN ===== */
+#password-screen { 
+  position: fixed; inset: 0; background: var(--bg-base); 
+  display: none; justify-content: center; align-items: center; 
+  z-index: 9999; padding: 20px; 
+  opacity: 0; transition: opacity 0.4s;
+}
+#password-screen.show { opacity: 1; }
+.pass-box { 
+  background: var(--bg-card); 
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  padding: 40px 30px; 
+  border-radius: 24px; 
+  border: 1px solid var(--border-glass); 
+  box-shadow: var(--shadow-glass);
+  max-width: 400px; width: 100%; text-align: center; 
+  transform: translateY(20px); transition: transform 0.4s;
+}
+#password-screen.show .pass-box { transform: translateY(0); }
+.pass-box h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.pass-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 25px; }
+.pass-input { 
+  width: 100%; padding: 16px; 
+  background: var(--bg-input); 
+  border: 1px solid var(--border-glass); 
+  border-radius: 12px;
+  color: var(--text-main); font-size: 18px; 
+  text-align: center; letter-spacing: 4px; outline: none; 
+  transition: var(--transition-smooth);
+}
+.pass-input:focus { 
+  border-color: var(--accent-primary); 
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); 
+}
+.pass-btn { 
+  width: 100%; padding: 16px; margin-top: 15px; 
+  background: var(--accent-primary); color: #0f172a; 
+  border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; cursor: pointer; 
+  transition: var(--transition-smooth);
+}
+.pass-btn:hover { background: #7dd3fc; transform: translateY(-2px); }
+.pass-btn:active { transform: translateY(0); }
+.pass-error { 
+  color: #ef4444; font-size: 13px; margin-top: 15px; 
+  display: none; font-weight: 600;
+}
+
+/* ===== MAIN APP ===== */
+#app { display: none; min-height: 100vh; opacity: 0; transition: opacity 0.5s; }
+#app.show { opacity: 1; }
+
+/* TOPBAR */
+.topbar { 
+  background: rgba(15, 23, 42, 0.8); 
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  padding: 15px 20px; 
+  display: flex; align-items: center; gap: 15px; 
+  border-bottom: 1px solid var(--border-glass); 
+  position: sticky; top: 0; z-index: 100; 
+}
+.hamburger { 
+  width: 40px; height: 40px; background: var(--bg-card); 
+  border: 1px solid var(--border-glass); border-radius: 10px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; 
+  cursor: pointer; transition: var(--transition-smooth);
+}
+.hamburger:hover { background: rgba(255,255,255,0.1); }
+.hamburger span { width: 20px; height: 2px; background: var(--text-main); border-radius: 2px; }
+.topbar h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+
+/* SIDEBAR */
+.sidebar { 
+  position: fixed; top: 0; left: -320px; width: 300px; height: 100vh; 
+  background: rgba(30, 41, 59, 0.95); 
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border-glass); 
+  z-index: 200; transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+  padding: 25px; display: flex; flex-direction: column;
+}
+.sidebar.open { left: 0; }
+.sidebar-header { 
+  display: flex; justify-content: space-between; align-items: center; 
+  margin-bottom: 30px; padding-bottom: 20px; 
+  border-bottom: 1px solid var(--border-glass); 
+}
+.sidebar-header h2 { font-size: 16px; font-weight: 700; color: var(--accent-primary); }
+.close-sidebar { 
+  background: none; border: none; color: var(--text-muted); 
+  font-size: 24px; cursor: pointer; transition: color 0.2s;
+}
+.close-sidebar:hover { color: var(--text-main); }
+.menu-item { 
+  padding: 16px; background: transparent; border-radius: 12px;
+  border: 1px solid transparent; margin-bottom: 10px; cursor: pointer; 
+  transition: var(--transition-smooth); display: flex; flex-direction: column; gap: 4px;
+}
+.menu-item:hover { background: rgba(255,255,255,0.05); }
+.menu-item.active { 
+  background: rgba(56, 189, 248, 0.1); 
+  border: 1px solid rgba(56, 189, 248, 0.3); 
+}
+.menu-item .label { font-size: 15px; font-weight: 600; color: var(--text-main); }
+.menu-item.active .label { color: var(--accent-primary); }
+.menu-item .desc { font-size: 12px; color: var(--text-muted); }
+.overlay { 
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); 
+  backdrop-filter: blur(4px);
+  z-index: 150; display: none; opacity: 0; transition: opacity 0.3s;
+}
+.overlay.show { display: block; opacity: 1; }
+
+/* CONTENT AREA */
+.content { padding: 20px; max-width: 600px; margin: 0 auto; }
+.page { display: none; animation: slideUpFade 0.4s ease-out forwards; }
+.page.active { display: block; }
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* CARDS */
+.card { 
+  background: var(--bg-card); 
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass); 
+  border-radius: 20px;
+  padding: 24px; margin-bottom: 20px; 
+  box-shadow: var(--shadow-glass);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4); }
+.card-title { 
+  font-size: 16px; color: var(--text-main); font-weight: 700;
+  margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+}
+
+/* INPUTS */
+.single-input-wrap, .match-box { 
+  background: var(--bg-input); 
+  border: 1px solid var(--border-glass); 
+  border-radius: 16px;
+  padding: 16px; margin-bottom: 16px; 
+  transition: border-color 0.3s;
+}
+.single-input-wrap:focus-within, .match-box:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+.single-label, .match-label { 
+  font-size: 12px; color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 1px; text-align: center; margin-bottom: 10px; font-weight: 600;
+}
+.match-label small { color: var(--accent-primary); margin-left: 5px; }
+
+.huge-input, .big-input { 
+  width: 100%; padding: 10px; 
+  background: transparent; border: none; 
+  color: var(--text-main); text-align: center; outline: none; 
+  font-weight: 800;
+  -moz-appearance: textfield;
+}
+.huge-input { font-size: 64px; }
+.big-input { font-size: 32px; }
+.huge-input::-webkit-outer-spin-button, .huge-input::-webkit-inner-spin-button,
+.big-input::-webkit-outer-spin-button, .big-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.match-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
+
+/* BUTTONS */
+.btn-primary, .btn-secondary { 
+  width: 100%; padding: 16px; 
+  border: none; border-radius: 14px;
+  font-weight: 700; font-size: 14px; cursor: pointer; 
+  transition: var(--transition-smooth); margin-bottom: 12px;
+  letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; gap: 8px;
+}
+.btn-primary { 
+  background: var(--accent-primary); color: #0f172a; 
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+}
+.btn-primary:hover { background: #7dd3fc; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4); }
+.btn-secondary { 
+  background: rgba(255,255,255,0.05); color: var(--text-main); 
+  border: 1px solid var(--border-glass);
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+.btn-primary:active, .btn-secondary:active { transform: translateY(0); }
+
+/* RESULTS */
+.result-box { 
+  margin-top: 20px; padding: 30px 20px; 
+  background: var(--bg-input); border-radius: 16px;
+  border: 1px solid var(--border-glass);
+  text-align: center; display: none; 
+  opacity: 0; transform: translateY(10px); transition: all 0.4s ease;
+}
+.result-box.show { display: block; opacity: 1; transform: translateY(0); }
+.result-box.kecil { border-left: 4px solid var(--accent-kecil); box-shadow: 0 4px 20px rgba(6, 182, 212, 0.1); }
+.result-box.besar { border-left: 4px solid var(--accent-besar); box-shadow: 0 4px 20px rgba(249, 115, 22, 0.1); }
+
+.result-label { font-size: 12px; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 10px; font-weight: 600; }
+.result-value { font-size: 48px; font-weight: 800; letter-spacing: 4px; line-height: 1; }
+.result-value.kecil { color: var(--accent-kecil); text-shadow: 0 0 20px rgba(6, 182, 212, 0.4); }
+.result-value.besar { color: var(--accent-besar); text-shadow: 0 0 20px rgba(249, 115, 22, 0.4); }
+.result-detail { font-size: 13px; color: var(--text-muted); margin-top: 15px; line-height: 1.6; }
+
+/* MATCH RESULT ROW */
+.match-result-row { 
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 16px; background: var(--bg-input); 
+  border: 1px solid var(--border-glass); border-radius: 14px; margin-bottom: 12px; 
+  animation: slideUpFade 0.4s ease-out;
+}
+.match-result-row.kecil { border-left: 4px solid var(--accent-kecil); }
+.match-result-row.besar { border-left: 4px solid var(--accent-besar); }
+.match-result-row .m-name { font-size: 15px; font-weight: 700; }
+.match-result-row .m-name small { display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+.match-result-row .m-pred { font-size: 20px; font-weight: 800; }
+.match-result-row .m-pred.kecil { color: var(--accent-kecil); }
+.match-result-row .m-pred.besar { color: var(--accent-besar); }
+
+/* INFO & ALERTS */
+.alert-info { 
+  background: rgba(56, 189, 248, 0.05); color: var(--text-muted); 
+  border: 1px dashed rgba(56, 189, 248, 0.3); border-radius: 12px;
+  padding: 14px; font-size: 13px; font-weight: 500;
+  margin-bottom: 16px; line-height: 1.6;
+}
+.alert-info b { color: var(--accent-primary); }
+.info-row { 
+  display: flex; justify-content: space-between; padding: 12px 0; 
+  border-bottom: 1px solid var(--border-glass); font-size: 14px; font-weight: 500;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row .lbl { color: var(--text-muted); }
+.info-row .val { font-weight: 700; padding: 2px 10px; border-radius: 6px; font-size: 12px; }
+.info-row .val.k { background: rgba(6, 182, 212, 0.15); color: var(--accent-kecil); }
+.info-row .val.b { background: rgba(249, 115, 22, 0.15); color: var(--accent-besar); }
+
+/* POLA LIST */
+.pola-list { margin-top: 15px; max-height: 350px; overflow-y: auto; padding-right: 5px; }
+.pola-item { 
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 12px; background: rgba(15, 23, 42, 0.4); border-radius: 10px;
+  margin-bottom: 8px; font-size: 12px; font-weight: 500;
+}
+.pola-num { color: var(--text-main); }
+.pola-result { font-weight: 700; padding: 4px 10px; border-radius: 6px; }
+.pola-result.kecil { background: rgba(6, 182, 212, 0.15); color: var(--accent-kecil); }
+.pola-result.besar { background: rgba(249, 115, 22, 0.15); color: var(--accent-besar); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+@media (min-width: 600px) {
+  .match-grid { grid-template-columns: 1fr 1fr 1fr; }
+  .huge-input { font-size: 80px; }
+  .big-input { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loader-logo">JACKKKZPRED</div>
+  <div class="loading-bar-container"><div class="loading-bar" id="loadBar"></div></div>
+</div>
+
+<!-- PASSWORD -->
+<div id="password-screen">
+  <div class="pass-box">
+    <h2>Akses Terbatas</h2>
+    <p>Masukkan kode otorisasi untuk melanjutkan</p>
+    <input type="password" id="passInput" class="pass-input" autocomplete="off">
+    <button class="pass-btn" onclick="checkPassword()">Buka Sistem</button>
+    <div class="pass-error" id="passError">Kode Salah. Akses Ditolak.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <h1>JACKKKZPRED</h1>
+  </div>
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+  
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Menu Navigasi</h2>
+      <button class="close-sidebar" onclick="toggleSidebar()">×</button>
+    </div>
+    <div class="menu-item active" data-page="menu1" onclick="switchPage('menu1')">
+      <div class="label">Predict 1D</div>
+      <div class="desc">Analisis Dadu Tunggal (1-6)</div>
+    </div>
+    <div class="menu-item" data-page="menu2" onclick="switchPage('menu2')">
+      <div class="label">Predict 9D</div>
+      <div class="desc">Sistem Multi-Match & Game</div>
+    </div>
+    <div class="menu-item" data-page="pola" onclick="switchPage('pola')">
+      <div class="label">Data Referensi</div>
+      <div class="desc">Pola Menit, IP, & Lainnya</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- MENU 1 - 1D -->
+    <div class="page active" id="menu1">
+      <div class="card">
+        <div class="card-title">Sistem Prediksi 1D</div>
+        <div class="alert-info">Masukkan nilai dadu <b>[1-6]</b> untuk mengeksekusi prediksi.</div>
+        <div class="single-input-wrap">
+          <div class="single-label">Input Angka</div>
+          <input type="number" id="input1d" class="huge-input" min="1" max="6">
+        </div>
+        <button class="btn-primary" onclick="predict1D()">Jalankan Prediksi</button>
+        <button class="btn-secondary" onclick="predictByTime1D()">Berdasarkan Waktu</button>
+        <div class="result-box" id="result1d">
+          <div class="result-label">HASIL PREDIKSI</div>
+          <div class="result-value" id="result1d-val"></div>
+          <div class="result-detail" id="result1d-detail"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Referensi Logika</div>
+        <div class="info-row"><span class="lbl">Angka 1, 2, 3</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">Angka 4, 5, 6</span><span class="val b">BESAR</span></div>
+      </div>
+    </div>
+
+    <!-- MENU 2 - 9D -->
+    <div class="page" id="menu2">
+      <div class="card">
+        <div class="card-title">Prediksi Game Berikutnya</div>
+        <div class="alert-info">Input Game ID + M1/M2. <b>[M3 Opsional]</b></div>
+
+        <div class="single-input-wrap">
+          <div class="single-label">Game Ke Berapa Sekarang?</div>
+          <input type="number" id="gameNum" class="huge-input" min="1">
+        </div>
+
+        <div class="match-grid">
+          <div class="match-box">
+            <div class="match-label">M1</div>
+            <input type="number" id="m1" class="big-input" min="9" max="54">
+          </div>
+          <div class="match-box">
+            <div class="match-label">M2</div>
+            <input type="number" id="m2" class="big-input" min="9" max="54">
+          </div>
+          <div class="match-box">
+            <div class="match-label">M3 <small>(Opt)</small></div>
+            <input type="number" id="m3" class="big-input" min="9" max="54">
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="predictNextGame()">Kalkulasi Next Game</button>
+        <div id="nextGameResult"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Analisis Pola Per Match</div>
+        <div class="alert-info">Eksekusi logika pola individual (Kembar/Last/Angka).</div>
+        <button class="btn-secondary" onclick="predictAllMatch9D()">Jalankan Pola</button>
+        <button class="btn-secondary" onclick="predictByTimeAll9D()">Berdasarkan Waktu</button>
+        <div id="matchResultsWrap9D" style="margin-top:15px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Database Pola Angka</div>
+        <div class="pola-list" id="polaList"></div>
+      </div>
+    </div>
+
+    <!-- POLA -->
+    <div class="page" id="pola">
+      <div class="card">
+        <div class="card-title">Pola Waktu (Menit)</div>
+        <div class="info-row" style="margin-bottom:10px; border:none;">
+          <span class="lbl">Waktu Sekarang</span>
+          <span class="val" style="background:transparent; font-size:16px;" id="clockDisplay">--:--</span>
+        </div>
+        <div id="menitCurrent" class="alert-info"></div>
+        <div class="info-row"><span class="lbl">00 - 06 Menit</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">07 - 16 Menit</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">17 - 25 Menit</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">26 - 36 Menit</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">37 - 45 Menit</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">46 - 59 Menit</span><span class="val b">BESAR</span></div>
+      </div>
+      
+      <!-- POLA ALL DEVICE -->
+      <div class="card">
+        <div class="card-title">POLA ALL DEVICE</div>
+        <div class="info-row"><span class="lbl">IPHONE</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">INFINIX</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">VIVO</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">OPPO</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">TECNO</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">REALME</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">REDMI</span><span class="val k">KECIL</span></div>
+      </div>
+
+      <!-- POLA IPHONE (BARU) -->
+      <div class="card">
+        <div class="card-title">Pola iPhone</div>
+        <div class="info-row"><span class="lbl">IPHONE XS</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">IPHONE XR</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">IPHONE 11</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">IPHONE 12</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">IPHONE 13</span><span class="val b">BESAR</span></div>
+        <div class="info-row"><span class="lbl">IPHONE 14</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">IPHONE 15</span><span class="val k">KECIL</span></div>
+        <div class="info-row"><span class="lbl">IPHONE 16</span><span class="val b">BESAR</span></div>
+      </div>
+      <!-- END POLA IPHONE -->
+
+      <div class="card">
+        <div class="card-title">Pola Zigzag / Sange</div>
+        <div class="alert-info">
+          B 2-0 ZIGZAG → K 2-0 SANGE<br>
+          B 2-1 SANGE → K 2-1 ZIGZAG<br>
+          KEMBAR B FIX B • KEMBAR K FIX K<br>
+          2-0 3X PECAH ZIGZAG
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Tabel PIK Dadu 18-42</div>
+        <div id="pikTable"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* LOADING & TRANSITION */
+let loadPct = 0;
+const li = setInterval(() => {
+  loadPct += Math.random() * 20;
+  if (loadPct >= 100) {
+    loadPct = 100;
+    clearInterval(li);
+    setTimeout(() => {
+      document.getElementById('loading').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+        const passScr = document.getElementById('password-screen');
+        passScr.style.display = 'flex';
+        setTimeout(() => passScr.classList.add('show'), 50);
+      }, 600);
+    }, 400);
+  }
+  document.getElementById('loadBar').style.width = loadPct + '%';
+}, 200);
+
+/* PASSWORD LOGIC */
+const PASSWORD = 'JACKKKZPRED';
+function checkPassword() {
+  const val = document.getElementById('passInput').value.toUpperCase().trim();
+  if (val === PASSWORD) {
+    const passScr = document.getElementById('password-screen');
+    passScr.classList.remove('show');
+    setTimeout(() => {
+      passScr.style.display = 'none';
+      const app = document.getElementById('app');
+      app.style.display = 'block';
+      setTimeout(() => app.classList.add('show'), 50);
+      
+      buildPolaList();
+      buildPikTable();
+      updateClock();
+      setInterval(updateClock, 1000);
+    }, 400);
+  } else {
+    document.getElementById('passError').style.display = 'block';
+    document.getElementById('passInput').value = '';
+    setTimeout(() => document.getElementById('passError').style.display = 'none', 2000);
+  }
+}
+document.getElementById('passInput').addEventListener('keypress', e => { if (e.key === 'Enter') checkPassword(); });
+
+/* NAVIGATION */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  toggleSidebar();
+}
+
+/* DATA DB */
+const polaAngka = [
+  { input:'32 KEMBAR', hasil:'B', raw:'32 KEMBAR FIX KE B' },
+  { input:'LAST 32', hasil:'K', raw:'LAST 32 FIX K' },
+  { input:'31 KEMBAR', hasil:'K', raw:'31 KEMBAR FIX KE K' },
+  { input:'LAST 31', hasil:'B', raw:'LAST 31 FIX B' },
+  { input:'35-26', hasil:'B', raw:'35-26 2-1 FIX KE B' },
+  { input:'32-29', hasil:'B', raw:'32-29 FIX KE B' },
+  { input:'26-33', hasil:'K', raw:'26-33 FIX KE K' },
+  { input:'28', hasil:'B', raw:'28 FIX KE B' },
+  { input:'28-34', hasil:'B', raw:'28-34 2-1 FIX KE B' },
+  { input:'37', hasil:'B', raw:'37 FIX KE B' },
+  { input:'28-35', hasil:'K', raw:'28-35 2-1 FIX KE K' },
+  { input:'22', hasil:'K', raw:'22 FIX KE K' },
+  { input:'23', hasil:'B', raw:'23 FIX KE B' },
+  { input:'21', hasil:'K', raw:'21 FIX KE K' },
+  { input:'24', hasil:'B', raw:'24 FIX KE B' },
+  { input:'39', hasil:'K', raw:'39 FIX KE K' },
+  { input:'33-36', hasil:'K', raw:'33-36 FIX KE K' },
+  { input:'20', hasil:'B', raw:'20 FIX KE B' },
+  { input:'27', hasil:'B', raw:'27 FIX KE B' },
+  { input:'31-30', hasil:'B', raw:'31-30 FIX KE B' },
+  { input:'40', hasil:'B', raw:'40 FIX KE B' },
+  { input:'41', hasil:'B', raw:'41 FIX KE B' },
+  { input:'42', hasil:'B', raw:'42 FIX KE B' },
+  { input:'43', hasil:'B', raw:'43 FIX KE B' },
+  { input:'44', hasil:'K', raw:'44 FIX KE K' },
+  { input:'45', hasil:'K', raw:'45 FIX KE K' },
+  { input:'33-25', hasil:'B', raw:'33-25 (31-25 2-1) FIX B' },
+  { input:'33-32', hasil:'B', raw:'33-32 2-1 FIX KE B' },
+  { input:'34-34', hasil:'K', raw:'34-34 2-1 FIX K' },
+];
+
+const pikData = { 18:'B',19:'K',20:'B',21:'B',22:'B',23:'B',24:'B',25:'K',26:'B',27:'K',28:'K',29:'K',30:'K',31:'K',32:'B',33:'K',34:'B',35:'K',36:'B',37:'K',38:'B',39:'K',40:'B',41:'K',42:'B' };
+
+/* PREDICT 1D */
+function predict1D() {
+  const input = document.getElementById('input1d').value.trim();
+  const num = parseInt(input);
+  const box = document.getElementById('result1d');
+  const val = document.getElementById('result1d-val');
+  const detail = document.getElementById('result1d-detail');
+  if (!num || num < 1 || num > 6) { alert('Masukkan angka 1-6!'); return; }
+
+  const menit = new Date().getMinutes();
+  const timePred = getPolaMenit(menit);
+  let prediction, reason;
+
+  if (num >= 1 && num <= 3) {
+    prediction = timePred === 'B' ? 'B' : 'K';
+    reason = 'Angka ' + num + ' (Kecil) • Pola Menit ' + menit + ' → ' + (prediction === 'K' ? 'KECIL' : 'BESAR');
+  } else {
+    prediction = timePred === 'K' ? 'K' : 'B';
+    reason = 'Angka ' + num + ' (Besar) • Pola Menit ' + menit + ' → ' + (prediction === 'K' ? 'KECIL' : 'BESAR');
+  }
+  showResult(box, val, detail, prediction, reason);
+}
+
+function predictByTime1D() {
+  const box = document.getElementById('result1d');
+  const val = document.getElementById('result1d-val');
+  const detail = document.getElementById('result1d-detail');
+  const menit = new Date().getMinutes();
+  const prediction = getPolaMenit(menit);
+  showResult(box, val, detail, prediction, 'Pola Menit ke-' + menit + ' → ' + (prediction === 'K' ? 'KECIL' : 'BESAR'));
+}
+
+function showResult(box, val, detail, prediction, reason) {
+  box.className = 'result-box';
+  val.className = 'result-value';
+  if (prediction === 'K') {
+    box.classList.add('show', 'kecil');
+    val.classList.add('kecil');
+    val.textContent = 'KECIL';
+  } else {
+    box.classList.add('show', 'besar');
+    val.classList.add('besar');
+    val.textContent = 'BESAR';
+  }
+  detail.textContent = reason;
+}
+
+/* PREDICT NEXT GAME (9D) */
+function predictNextGame() {
+  const gameNumRaw = document.getElementById('gameNum').value.trim();
+  const m1Raw = document.getElementById('m1').value.trim();
+  const m2Raw = document.getElementById('m2').value.trim();
+  const m3Raw = document.getElementById('m3').value.trim();
+  const wrap = document.getElementById('nextGameResult');
+
+  if (!gameNumRaw) { alert('Masukkan Nomor Game!'); return; }
+  if (!m1Raw || !m2Raw) { alert('Minimal isi M1 dan M2!'); return; }
+
+  const gameNum = parseInt(gameNumRaw);
+  const extractNum = (str) => {
+    const m = str.match(/\d+/);
+    return m ? parseInt(m[0]) : null;
+  };
+
+  const n1 = extractNum(m1Raw);
+  const n2 = extractNum(m2Raw);
+  let n3 = null;
+  
+  if (m3Raw) {
+    n3 = extractNum(m3Raw);
+    if (n3 === null) { alert('Angka M3 tidak valid!'); return; }
+  }
+
+  if (n1 === null || n2 === null) { alert('Angka M1/M2 tidak valid!'); return; }
+
+  const getKB = (n) => {
+    if (n >= 9 && n <= 31) return 'K';
+    if (n >= 32 && n <= 54) return 'B';
+    return null;
+  };
+
+  const r1 = getKB(n1), r2 = getKB(n2);
+  if (!r1 || !r2) { alert('Angka harus di range 9-54!'); return; }
+  
+  let r3 = null;
+  if (n3 !== null) {
+    r3 = getKB(n3);
+    if (!r3) { alert('Angka M3 harus di range 9-54!'); return; }
+  }
+
+  let kWins = 0;
+  let bWins = 0;
+  let matchDetails = `M1=${n1}(${r1}) • M2=${n2}(${r2})`;
+  
+  if (r1 === 'K') kWins++; else bWins++;
+  if (r2 === 'K') kWins++; else bWins++;
+
+  if (r3 !== null) {
+    matchDetails += ` • M3=${n3}(${r3})`;
+    if (r3 === 'K') kWins++; else bWins++;
+  } else {
+    if (kWins === 1 && bWins === 1) {
+      alert('Skor masih 1-1! Wajib isi M3 untuk menentukan pemenang.');
+      return;
+    }
+  }
+
+  const winner = kWins > bWins ? 'K' : 'B';
+  const score = `${Math.max(kWins, bWins)}-${Math.min(kWins, bWins)}`;
+  let nextPred, reason;
+
+  const isKembar = r3 !== null && r1 === r2 && r2 === r3;
+  
+  if (isKembar) {
+    nextPred = winner;
+    reason = `Kembar ${winner === 'K' ? 'Kecil' : 'Besar'} → Fix ${winner === 'K' ? 'Kecil' : 'Besar'}`;
+  } else if (score === '2-0') {
+    nextPred = winner === 'K' ? 'B' : 'K';
+    reason = `Pola 2-0 Fix: ${winner === 'K' ? 'Kecil' : 'Besar'} Win → Next ${nextPred === 'K' ? 'Kecil' : 'Besar'}`;
+  } else {
+    nextPred = winner === 'K' ? 'B' : 'K';
+    reason = `Zigzag: ${winner === 'K' ? 'Kecil' : 'Besar'} Win ${score} → Next ${nextPred === 'K' ? 'Kecil' : 'Besar'}`;
+  }
+
+  const nextGameNum = gameNum + 1;
+  const wCls = winner === 'K' ? 'kecil' : 'besar';
+  const wLbl = winner === 'K' ? 'KECIL' : 'BESAR';
+  const nCls = nextPred === 'K' ? 'kecil' : 'besar';
+  const nLbl = nextPred === 'K' ? 'KECIL' : 'BESAR';
+
+  wrap.innerHTML = `
+    <div style="margin-top:20px; animation: slideUpFade 0.4s ease-out;">
+      <div class="match-result-row ${wCls}">
+        <div class="m-name">Game ${gameNum}
+          <small>${matchDetails}</small>
+          <small style="color:var(--text-main); font-weight:600; margin-top:6px;">${wLbl} WIN ${score} ${score === '2-0' ? '(FIX)' : ''}</small>
+        </div>
+        <span class="m-pred ${wCls}">${winner}</span>
+      </div>
+      <div class="result-box show ${nCls}" style="margin-top:15px; padding:20px;">
+        <div class="result-label">PREDIKSI GAME ${nextGameNum}</div>
+        <div class="result-value ${nCls}" style="font-size:36px;">${nLbl}</div>
+        <div class="result-detail">${reason}</div>
+      </div>
+    </div>
+  `;
+}
+
+/* PER MATCH PATTERN */
+function processOneMatch(input) {
+  const raw = input.toUpperCase().trim();
+  if (!raw) return null;
+  const clean = raw.replace(/[^0-9\-]/g, '').trim();
+  
+  if (/KEMBAR/.test(raw)) {
+    if (/32/.test(raw)) return { pred:'B', reason:'32 Kembar → B' };
+    if (/31/.test(raw)) return { pred:'K', reason:'31 Kembar → K' };
+    if (/\bK\b/.test(raw) || /KEMBAR.*K/.test(raw)) return { pred:'K', reason:'Kembar K → Fix K' };
+    if (/\bB\b/.test(raw) || /KEMBAR.*B/.test(raw)) return { pred:'B', reason:'Kembar B → Fix B' };
+  }
+
+  if (/LAST/.test(raw)) {
+    if (/32/.test(raw)) return { pred:'K', reason:'Last 32 → K' };
+    if (/31/.test(raw)) return { pred:'B', reason:'Last 31 → B' };
+  }
+
+  for (const p of polaAngka) {
+    if (p.input === raw || p.input === clean) return { pred:p.hasil, reason:p.raw };
+  }
+
+  if (clean.length >= 2) {
+    for (const p of polaAngka) {
+      const base = p.input.split(/[-\s]/)[0];
+      if (base === clean) return { pred:p.hasil, reason:p.raw };
+    }
+  }
+
+  const firstNum = parseInt(clean.split('-')[0]) || 0;
+  if (firstNum >= 9 && firstNum <= 31) return { pred:'K', reason:'Range 9-31 → K' };
+  if (firstNum >= 32 && firstNum <= 54) return { pred:'B', reason:'Range 32-54 → B' };
+
+  const menit = new Date().getMinutes();
+  const tp = getPolaMenit(menit);
+  return { pred:tp, reason:'Fallback Waktu (' + menit + ')' };
+}
+
+function predictAllMatch9D() {
+  const m1 = document.getElementById('m1').value.trim();
+  const m2 = document.getElementById('m2').value.trim();
+  const m3 = document.getElementById('m3').value.trim();
+  const wrap = document.getElementById('matchResultsWrap9D');
+
+  if (!m1 && !m2 && !m3) { alert('Isi minimal 1 match!'); return; }
+
+  const matches = [
+    { name:'Match 1', val:m1 },
+    { name:'Match 2', val:m2 },
+    { name:'Match 3', val:m3 }
+  ];
+
+  let html = '';
+  matches.forEach(m => {
+    if (!m.val) return;
+    const result = processOneMatch(m.val);
+    if (!result) return;
+    const cls = result.pred === 'K' ? 'kecil' : 'besar';
+    const label = result.pred === 'K' ? 'KECIL' : 'BESAR';
+    html += `<div class="match-result-row ${cls}">
+      <div class="m-name">${m.name} // ${m.val.toUpperCase()}<br><small>${result.reason}</small></div>
+      <span class="m-pred ${cls}">${label}</span>
+    </div>`;
+  });
+
+  wrap.innerHTML = html;
+}
+
+function predictByTimeAll9D() {
+  const wrap = document.getElementById('matchResultsWrap9D');
+  const menit = new Date().getMinutes();
+  const prediction = getPolaMenit(menit);
+  const cls = prediction === 'K' ? 'kecil' : 'besar';
+  const label = prediction === 'K' ? 'KECIL' : 'BESAR';
+
+  let html = '';
+  ['Match 1','Match 2','Match 3'].forEach(name => {
+    html += `<div class="match-result-row ${cls}">
+      <div class="m-name">${name} // Waktu ${menit}</div>
+      <span class="m-pred ${cls}">${label}</span>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+/* HELPERS */
+function getPolaMenit(m) {
+  if (m >= 0 && m <= 6) return 'K';
+  if (m >= 7 && m <= 16) return 'B';
+  if (m >= 17 && m <= 25) return 'K';
+  if (m >= 26 && m <= 36) return 'B';
+  if (m >= 37 && m <= 45) return 'K';
+  return 'B';
+}
+
+function updateClock() {
+  const now = new Date();
+  const el = document.getElementById('clockDisplay');
+  if (el) el.textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+  const menit = now.getMinutes();
+  const p = getPolaMenit(menit);
+  const el2 = document.getElementById('menitCurrent');
+  if (el2) {
+    el2.innerHTML = `Menit ke: <b>${menit}</b> • Prediksi: <b style="color:${p === 'K' ? 'var(--accent-kecil)' : 'var(--accent-besar)'}">${p === 'K' ? 'KECIL' : 'BESAR'}</b>`;
+  }
+}
+
+function buildPolaList() {
+  const list = document.getElementById('polaList');
+  let html = '';
+  polaAngka.forEach(p => {
+    const cls = p.hasil === 'K' ? 'kecil' : 'besar';
+    const label = p.hasil === 'K' ? 'KECIL' : 'BESAR';
+    html += `<div class="pola-item"><span class="pola-num">${p.raw}</span><span class="pola-result ${cls}">${label}</span></div>`;
+  });
+  list.innerHTML = html;
+}
+
+function buildPikTable() {
+  const el = document.getElementById('pikTable');
+  let html = '';
+  for (let i = 18; i <= 42; i++) {
+    const r = pikData[i];
+    const cls = r === 'K' ? 'k' : 'b';
+    const label = r === 'K' ? 'KECIL' : 'BESAR';
+    html += `<div class="info-row"><span class="lbl">${i} PIK</span><span class="val ${cls}">${label}</span></div>`;
+  }
+  el.innerHTML = html;
+}
+
+/* SHORTCUTS */
+document.getElementById('input1d')?.addEventListener('keypress', e => { if (e.key === 'Enter') predict1D(); });
+document.getElementById('m3')?.addEventListener('keypress', e => { if (e.key === 'Enter') predictNextGame(); });
+</script>
+</body>
+</html>
